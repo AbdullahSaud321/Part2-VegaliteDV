@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Accident Analysis</title>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+    />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/papaparse/papaparse.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vega@5"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vega-lite@5"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+
+  <body>
+    <header>
+      <nav>
+        <a href="#task1">Task1</a>
+        <a href="#task2">Task2</a>
+        <a href="#task3">Task3</a>
+        <a href="#extra">Extra</a>
+      </nav>
+    </header>
+
+    <h1 id="task1">Task 1: Accident Distribution by Day of the Week</h1>
+    <p>
+      The bar chart illustrates the total number of accidents for each day of
+      the week, revealing that Tuesdays have the highest number of accidents
+      (8,500), followed by Wednesdays (8,028), while Sundays have the fewest
+      (6,063). This indicates a higher frequency of accidents on weekdays,
+      potentially due to increased traffic volumes, with numbers declining on
+      weekends. In this chart, bars serve as the primary marks, encoding
+      accident counts through their height (taller bars for more accidents) and
+      color (each day has a unique color, such as orange for Monday and red for
+      Tuesday). The horizontal region encodes the ordinal attribute of "Day of
+      the Week," and the vertical region represents the quantitative attribute
+      "Number of Accidents." The color channel further enhances quick
+      differentiation between days, enabling viewers to easily compare accident
+      frequencies across the week.
+    </p>
+    <div id="vis1"></div>
+
+    <h1 id="task2">Task 2: Accident Distribution by Hour of the Day</h1>
+    <p>
+      The second line chart plots the number of accidents across each hour of
+      the day for different days of the week. This chart reveals peak accident
+      hours around 8 AM and 4–5 PM, likely due to rush hours, with accident
+      rates dropping during late-night and early-morning hours. Each line
+      represents a specific day, encoding accident trends over time. The lines
+      are the primary marks here, with each line’s position along the X-axis
+      encoding "Hour of the Day" and the Y-axis representing "Number of
+      Accidents". The color of each line corresponds to a specific day,
+      consistent with the bar chart’s color scheme, allowing viewers to track
+      each day’s pattern. Peaks and troughs in the lines’ shapes reveal
+      time-of-day trends in accident frequency, with weekdays generally showing
+      higher accident rates during rush hours compared to weekends. Through
+      these visual elements, both charts enable an in-depth examination of
+      accident distribution, utilizing position, height, and color to
+      effectively convey quantitative data and categorical distinctions.
+    </p>
+    <div id="vis2"></div>
+
+    <h1 id="task3">Task 3: Accident Density Map</h1>
+    <p>
+      This map shows accident density in Dubai using a dot density plot, where
+      each dot represents an accident. The visualization employs color intensity
+      as the primary channel to encode accident density, with lighter shades
+      indicating lower densities and darker shades (up to dark red) representing
+      higher densities, as shown in the legend. Spatial positioning aligns with
+      the actual accident locations, effectively guiding viewers’ attention to
+      accident hotspots. This design enables quick identification of areas with
+      frequent accidents through variations in color and dot concentration.
+    </p>
+    <div id="extra-map"></div>
+
+    <h1 id="extra">Extra Visualization for Task 3</h1>
+    <div id="map"></div>
+
+    <script>
+      // Task 1 Visualization
+      const vis1 = {
+        $schema: "https://vega.github.io/schema/vega-lite/v5.json",
+        data: {
+          url: "/accidents (1).csv",
+          format: {
+            type: "csv",
+            parse: { acci_time: "date:'%d/%m/%Y %H:%M:%S'" },
+          },
+        },
+        layer: [
+          {
+            mark: "bar",
+            encoding: {
+              x: {
+                timeUnit: "day",
+                field: "acci_time",
+                title: "Accident Time (Day)",
+                type: "nominal",
+                sort: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+              },
+              y: {
+                aggregate: "count",
+                field: "acci_id",
+                title: "Number of Accidents",
+                type: "quantitative",
+              },
+              color: {
+                timeUnit: "day",
+                field: "acci_time",
+                title: "Day",
+                type: "nominal",
+              },
+            },
+          },
+          {
+            mark: { type: "text", dy: -5 },
+            encoding: {
+              x: {
+                timeUnit: "day",
+                field: "acci_time",
+                sort: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+              },
+              y: { aggregate: "count", field: "acci_id" },
+              text: { aggregate: "count", field: "acci_id" },
+              color: { value: "black" },
+            },
+          },
+        ],
+        width: "container",
+        height: "container",
+      };
+
+      // Task 2 Visualization
+      const vis2 = {
+        $schema: "https://vega.github.io/schema/vega-lite/v5.json",
+        data: {
+          url: "/accidents (1).csv",
+          format: {
+            type: "csv",
+            parse: { acci_time: "date:'%d/%m/%Y %H:%M:%S'" },
+          },
+        },
+        mark: "line",
+        encoding: {
+          x: {
+            timeUnit: "hours",
+            field: "acci_time",
+            type: "ordinal",
+            title: "Accident Time (Hour)",
+            axis: {
+              format: "%H",
+            },
+          },
+          y: {
+            aggregate: "count",
+            field: "acci_id",
+            title: "Number of Accidents",
+          },
+          color: {
+            timeUnit: "day",
+            field: "acci_time",
+            type: "nominal",
+            title: "Day of Week",
+          },
+        },
+        width: "container",
+        height: "container",
+      };
+
+      // Embed Task 1 and Task 2 visualizations
+      vegaEmbed("#vis1", vis1, { mode: "vega-lite" })
+        .then(console.log)
+        .catch(console.warn);
+      vegaEmbed("#vis2", vis2, { mode: "vega-lite" })
+        .then(console.log)
+        .catch(console.warn);
+
+      // Task 3: Accident Density Map
+      const map = L.map("map").setView([25.1, 55.3], 10); // Centered on Dubai
+
+      // Add Carto basemap tiles
+      L.tileLayer("https://basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png", {
+        maxZoom: 19,
+        attribution: "© OpenStreetMap contributors, © CARTO",
+      }).addTo(map);
+
+      // Fetch accident data and parse with PapaParse
+      fetch(
+        "https://raw.githubusercontent.com/sheriefAbdallah/CS318/main/Traffic_Incidents.csv"
+      )
+        .then((response) => response.text())
+        .then((csvText) => {
+          const accidents = Papa.parse(csvText, { header: true }).data;
+
+          const locationCounts = {};
+          accidents.forEach((accident) => {
+            const lat = parseFloat(accident.acci_x);
+            const lng = parseFloat(accident.acci_y);
+
+            if (lat > 23) {
+              const key = `${lat},${lng}`;
+              locationCounts[key] = (locationCounts[key] || 0) + 1;
+            }
+          });
+
+          Object.keys(locationCounts).forEach((key) => {
+            const [lat, lng] = key.split(",").map(Number);
+            const count = locationCounts[key];
+
+            let color;
+            if (count < 3) color = "rgba(173, 216, 230, 0.7)";
+            else if (count < 6) color = "rgba(70, 130, 180, 0.8)";
+            else color = "rgba(0, 0, 139, 1)";
+
+            L.circleMarker([lat, lng], {
+              radius: 1.5,
+              color: color,
+              fillColor: color,
+              fillOpacity: 3,
+              weight: 0.5,
+            })
+              .bindPopup(`Accidents: ${count}`)
+              .addTo(map);
+          });
+        })
+        .catch((error) => {
+          console.error("Error loading the accident data:", error);
+        });
+
+      // Extra Visualization for Task 3
+      const vlSpec = {
+        $schema: "https://vega.github.io/schema/vega-lite/v5.json",
+        data: {
+          url: "https://raw.githubusercontent.com/sheriefAbdallah/CS318/main/Traffic_Incidents.csv",
+          format: {
+            type: "csv",
+            parse: { acci_time: "date:'%d/%m/%Y %H:%M:%S'" },
+          },
+        },
+        transform: [
+          { filter: "datum.acci_y > 23" },
+          {
+            aggregate: [{ op: "count", as: "accident_count" }],
+            groupby: ["acci_x", "acci_y"],
+          },
+        ],
+        mark: {
+          type: "circle",
+          opacity: 5,
+          size: 5,
+        },
+        encoding: {
+          longitude: { field: "acci_y", type: "quantitative" },
+          latitude: { field: "acci_x", type: "quantitative" },
+          color: {
+            field: "accident_count",
+            type: "quantitative",
+            scale: { scheme: "reds" },
+            legend: { title: "Accident Density" },
+          },
+          size: {
+            field: "accident_count",
+            type: "quantitative",
+            scale: { range: [0, 100] },
+            title: "Accidents",
+          },
+          tooltip: [
+            {
+              field: "accident_count",
+              type: "quantitative",
+              title: "Accidents",
+            },
+          ],
+        },
+        width: "container",
+        height: "container",
+      };
+
+      // Embed the extra visualization for Task 3
+      vegaEmbed("#extra-map", vlSpec)
+        .then((result) =>
+          console.log("Extra visualization loaded successfully")
+        )
+        .catch((error) =>
+          console.error("Error loading extra visualization:", error)
+        );
+    </script>
+  </body>
+</html>
